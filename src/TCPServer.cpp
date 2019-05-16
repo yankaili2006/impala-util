@@ -59,13 +59,14 @@ string TCPServer::receive() {
 
 void TCPServer::Send(string msg) {
   send(newsockfd, msg.c_str(), msg.length(), 0);
+  cout << "send over:" << msg << ", msg.length:" << msg.length() << endl;
 }
 
 void TCPServer::detach() {
   pthread_kill(serverThread, SIGKILL);
   if (sockfd >= 0)
     close(sockfd);
-  if (newsockfd >= 0)
-    close(newsockfd);
+//  if (newsockfd >= 0)
+//    close(newsockfd);
 }
 

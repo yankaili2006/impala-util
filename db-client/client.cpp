@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	string line;
-	tcp.setup(SERVICE_IP, SERVICE_PORT);
+	tcp.setup("10.18.0.19", SERVICE_PORT);
 	tcp.Send("file:");
 	while(!in.eof()) {
 		getline(in, line);

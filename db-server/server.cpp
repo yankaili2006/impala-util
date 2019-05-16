@@ -75,12 +75,13 @@ void* loop(void * m) {
   pthread_detach(pthread_self());
   pthread_t process_t;
   while (1) {
-    {
-      std::unique_lock<std::mutex> lock(tcp.m);
-      tcp.cond_var.wait(lock, [=] { return !tcp.recv_q.empty();});
-
+      {
+      	std::unique_lock<std::mutex> lock(tcp.m);
+      	tcp.cond_var.wait(lock, [=] { return !tcp.recv_q.empty();});
+      }
+      string msg = "";
       if (!tcp.recv_q.empty()){
-        string msg = tcp.recv_q.front();
+        msg = tcp.recv_q.front();
         cout << "raw message:" << msg << endl;
         tcp.recv_q.pop();
 
@@ -95,9 +96,8 @@ void* loop(void * m) {
 //        pthread_create(&process_t, NULL, process_script, (void *) msg.c_str());
 //        pthread_join(process_t, nullptr);
       }
-    }
     usleep(1000);
-	}
+  }
 }
 
 void sig_exit(int s) {
