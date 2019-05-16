@@ -1,15 +1,4 @@
-import privpy as pp
-table = pp.reshape(pp.ss("a1"), (1940,4))
-colm0,colm1,colm2,colm3 = table.trans()
-conj0 = (colm3==3900)
-conj1 = (colm2<=5000)
-conj2 = (colm2>=4000)
-conj3 = ( 1 - (1 - (colm0<20180401)) * (1 - ((colm0==20180401)*(colm1<=80000000))))
-conj4 = ( 1 - (1 - (colm0>20180301)) * (1 - ((colm0==20180301)*(colm1>=90000000))))
-conj=conj0*conj1*conj2*conj3*conj4
-colm3= colm3 * conj
-colm2= colm2 * conj
-colm0= colm0 * conj
-colm1= colm1 * conj
-colm6= pp.mean(colm3)
-pp.reveal(colm6, "a3")
+a1 = pp.sfixed(3.2)
+a2 = pp.sfixed(-2.3)
+a3 = a1 + a2
+pp.reveal(a3, "a3")

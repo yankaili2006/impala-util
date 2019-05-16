@@ -79,5 +79,6 @@ string TCPClient::read() {
 }
 
 void TCPClient::exit() {
-  close(sock);
+	if (sock > 0)
+  	close(sock);
 }

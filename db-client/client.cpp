@@ -58,33 +58,25 @@ int main(int argc, char *argv[]) {
 
 	bool isend = false;
 	while(1) {
-		string str = tcp.receive();
-		if(str.find("file:") == 0) {
-			str = str.substr(5);
-			cout << "receive file" << endl;
-		}
+		string msg = tcp.receive();
+    cout << "receive result:" << msg << endl;
+    int pos = msg.find("file:");
+    if( pos >= 0) {
+      msg = msg.substr(pos + 5);
+    }
+    pos = msg.rfind("filend:");
+    if ( pos >= 0) {
+      msg = msg.substr(0, pos);
+    }
 
-		if (str.rfind("filend:") == (str.length() - 7) ) {
-			str = str.substr(0, str.length() - 7);
-			isend = true;
-			cout << "receive end" << endl;
-		}
-
-		if (str != "") {
-			cout << "Message:" << str << endl;
-			outf << str;
-		}
-		else {
-			// cout << "Message not expected:" << str << endl;
-		}
-
-		if(isend) {
+		if (msg != "") {
+			cout << "Message:" << msg << endl;
+			outf << msg;
 			outf.close();
 			break;
 		}
 		sleep(1);
 	}
-
 	cout << "to exit" << endl;
 
 	tcp.exit();

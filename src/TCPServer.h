@@ -13,10 +13,14 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <pthread.h>
+#include <signal.h>
 
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
 
 using namespace std;
 
@@ -28,9 +32,12 @@ class TCPServer {
 		struct sockaddr_in serverAddress;
 		struct sockaddr_in clientAddress;
 		pthread_t serverThread;
-		char msg[ MAXPACKETSIZE ];
+		char msg[MAXPACKETSIZE];
 		static string Message;
 		static bool isrunning;
+    static queue<string> recv_q;
+    static mutex m;
+    static condition_variable cond_var;
 
 		void setup(int port);
 		string receive();
@@ -41,7 +48,7 @@ class TCPServer {
 		void clean();
 
 	private:
-		static void * Task(void * argv);
+    static void * Task(void * argv);
 };
 
 #endif
