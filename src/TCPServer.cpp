@@ -15,7 +15,6 @@ void* TCPServer::Task(void *arg) {
   while(1) {
     n = recv(newsockfd, msg + read_size, MAXPACKETSIZE, 0);
     if(n == 0) {
-      close(newsockfd);
       break;
     }
     cout << "tcp recv:" << msg + read_size << endl;
@@ -60,13 +59,17 @@ string TCPServer::receive() {
 void TCPServer::Send(string msg) {
   send(newsockfd, msg.c_str(), msg.length(), 0);
   cout << "send over:" << msg << ", msg.length:" << msg.length() << endl;
+  if (newsockfd > 0) {
+    shutdown(newsockfd);
+    cout << "shutdown fd:" << newsockfd << endl;
+  }
 }
 
 void TCPServer::detach() {
   pthread_kill(serverThread, SIGKILL);
   if (sockfd >= 0)
-    close(sockfd);
+    shutdown(sockfd);
 //  if (newsockfd >= 0)
-//    close(newsockfd);
+//    shutdown(newsockfd);
 }
 
