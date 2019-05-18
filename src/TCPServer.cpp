@@ -60,7 +60,7 @@ void TCPServer::Send(string msg) {
   send(newsockfd, msg.c_str(), msg.length(), 0);
   cout << "send over:" << msg << ", msg.length:" << msg.length() << endl;
   if (newsockfd > 0) {
-    shutdown(newsockfd);
+    shutdown(newsockfd, 2);
     cout << "shutdown fd:" << newsockfd << endl;
   }
 }
@@ -68,7 +68,7 @@ void TCPServer::Send(string msg) {
 void TCPServer::detach() {
   pthread_kill(serverThread, SIGKILL);
   if (sockfd >= 0)
-    shutdown(sockfd);
+    shutdown(sockfd, 2);
 //  if (newsockfd >= 0)
 //    shutdown(newsockfd);
 }
