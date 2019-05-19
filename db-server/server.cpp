@@ -5,7 +5,8 @@
 TCPServer tcp;
 pthread_t msg_t;
 
-int save_file(string &msg) {
+
+int save_file(string &msg, string &receive_file) {
   int pos = msg.find("file:");
   if( pos >= 0) {
     msg = msg.substr(pos + 5);
@@ -18,18 +19,18 @@ int save_file(string &msg) {
   if (msg != "") {
     ofstream recf;
     cout << "raw file Message:" << msg << endl;
-    recf.open(RECEICE_FILE_NAME);
+    recf.open(receive_file);
     recf << msg;
     recf.close();
   }
   return 0;
 }
 
-int run_cmd() {
-  cout << "run_cmd:" << PRIVPY_CLIENT_CMD << endl;
+int run_cmd(string &privpy_cmd) {
+  cout << "run_cmd:" << privpy_cmd << endl;
   FILE *fp = NULL;
 
-  fp = popen(PRIVPY_CLIENT_CMD, "r");
+  fp = popen(privpy_cmd.c_str(), "r");
   if(!fp) {
     perror("popen error");
     return -1;
@@ -37,20 +38,15 @@ int run_cmd() {
   char   buf[1024];
   memset(buf, '\0', sizeof(buf) );
   fgets(buf, sizeof(buf), fp);
-  if (strlen(buf) == 0) {
-    cout << "execute command failed" << endl;
-    pclose(fp);
-    return -1;
-  }
   cout << "run_cmd out:" << buf << endl;
   pclose(fp);
   return 0;
 }
 
-int send_result() {
+int send_result(string &result_file) {
   cout << "start reply:" << endl;
   ifstream replyf;
-  replyf.open(REPLY_FILE_NAME);
+  replyf.open(result_file);
   string result = "file:";
 
   string line;
@@ -72,29 +68,37 @@ void* loop(void * m) {
   pthread_detach(pthread_self());
   pthread_t process_t;
   while (1) {
-      {
-      	std::unique_lock<std::mutex> lock(tcp.m);
-      	tcp.cond_var.wait(lock, [=] { return !tcp.recv_q.empty();});
-      }
-      string msg = "";
-      if (!tcp.recv_q.empty()){
-        msg = tcp.recv_q.front();
-        cout << "raw message:" << msg << endl;
-        tcp.recv_q.pop();
+    {
+      std::unique_lock<std::mutex> lock(tcp.m);
+      tcp.cond_var.wait(lock, [=] { return !tcp.recv_q.empty();});
+    }
+    string msg = "";
 
-        if(save_file(msg) !=0) {
-          cout << "save file error" <<endl;
-          continue;
-        }
-        if(run_cmd() != 0) {
-          cout << "run_cmd error" << endl;
-          continue;
-        }
-        if(send_result()){
-          cout << "send_result error" <<endl;
-          continue;
-        }
+    char szBuf[256] = {0};
+    time_t timer = time(NULL);
+    strftime(szBuf, sizeof(szBuf), "%Y%m%d%H%M%S", localtime(&timer));
+    string receive_file = "receive_" + string(szBuf) +".txt";
+    string replay_file = "reply_" + string(szBuf) +".txt";
+    string privpy_cmd = "/root/privpy/bazel-bin/client -code_file="+receive_file+" -impala=true >"+ replay_file;
+    cout << "receive_file:" << receive_file << ", replay_file:" << replay_file << ", privpy_cmd:" << privpy_cmd << endl;
+    if (!tcp.recv_q.empty()){
+      msg = tcp.recv_q.front();
+      cout << "raw message:" << msg << endl;
+      tcp.recv_q.pop();
+
+      if(save_file(msg, receive_file) !=0) {
+        cout << "save file error" <<endl;
+        continue;
       }
+      if(run_cmd(privpy_cmd) != 0) {
+        cout << "run_cmd error" << endl;
+        continue;
+      }
+      if(send_result(replay_file)){
+        cout << "send_result error" <<endl;
+        continue;
+      }
+    }
     sleep(1);
   }
 }
